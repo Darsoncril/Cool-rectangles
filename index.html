@@ -2,6 +2,7 @@
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Крутые прямоугольники</title><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#120e1c"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root{--bg:#120e1c;--fg:#f3eefc;--ov:rgba(18,14,28,.92);--btn:#6a4fd1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -697,5 +698,6 @@ $('tro').onclick=()=>{chkRich();renderAc();$('ac').style.display='flex'};$('acb'
 chkRich();if(own.includes('z'))ach('dar');
 
 $('stc').insertAdjacentHTML('beforebegin','<a id="tg" href="https://t.me/CoolRectanglesD" target="_blank" rel="noopener">Telegram-канал игры</a>');
+try{if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 menu();applyLang();
 </script></body></html>
