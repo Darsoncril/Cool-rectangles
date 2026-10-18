@@ -907,6 +907,23 @@ for(const x of['c','m','b'])$('colt'+x).onclick=()=>{colTab=x;colSel=-1;S('pick'
 AIC.col='<svg viewBox="0 0 24 24" shape-rendering="crispEdges"><rect width="24" height="24" fill="#2a2145"/><rect x="1" y="1" width="22" height="22" fill="#3d3166"/><rect x="4" y="4" width="7" height="7" fill="#e0344f"/><rect x="13" y="4" width="7" height="7" fill="#f0a020"/><rect x="4" y="13" width="7" height="7" fill="#2fd4cf"/><rect x="13" y="13" width="7" height="7" fill="#5ad17a"/><rect x="4" y="4" width="7" height="2" fill="#ff8a9a"/><rect x="13" y="4" width="7" height="2" fill="#ffd27a"/><rect x="4" y="13" width="7" height="2" fill="#8ff"/><rect x="13" y="13" width="7" height="2" fill="#a8ffbc"/><rect x="10" y="10" width="4" height="4" fill="#ffd23f"/></svg>';
 AIC.fir='<svg viewBox="0 0 24 24" shape-rendering="crispEdges"><rect width="24" height="24" fill="#2a2145"/><rect x="1" y="1" width="22" height="22" fill="#3d3166"/><rect x="11" y="3" width="3" height="4" fill="#e0341a"/><rect x="9" y="6" width="6" height="4" fill="#e0341a"/><rect x="7" y="9" width="10" height="9" fill="#ff8a1a"/><rect x="5" y="12" width="14" height="7" fill="#ff8a1a"/><rect x="8" y="13" width="8" height="7" fill="#ffd23f"/><rect x="10" y="16" width="4" height="4" fill="#fff3a0"/></svg>';
 
+/* ===== LOG ОБНОВЛЕНИЙ ===== */
+const LOGS=[{v:'1.1.8',it:[
+ ['КОЛЛЕКЦИЯ: новая вкладка в меню со всеми персонажами, монстрами и боссами. Описание и статистика открываются за 25 убийств монстра, 2 победы над боссом или полную прокачку персонажа.','COLLECTION: a new menu tab with all characters, monsters and bosses. The description and stats unlock after 25 kills of a monster, 2 wins against a boss, or fully upgrading a character.'],
+ ['Достижение «Коллекционер»: изучи всю коллекцию и получи 1500 монет.','Achievement "Collector": study the whole collection and get 1500 coins.'],
+ ['Достижение «Поджигатель»: собери усиление «Поджог» 3 раза за одну игру.','Achievement "Arsonist": collect the Ignite power-up 3 times in one run.'],
+ ['Новый скин «Горячая голова» для пулемётчика: он горит, а его пули стали оранжевыми. Даётся за достижение «Поджигатель».','New skin "Hot Head" for the Gunner: he is on fire and his bullets are orange. Unlocked by the "Arsonist" achievement.'],
+ ['Новые иконки основных усилений: здоровье, урон, скорострельность и макс. здоровье.','New icons for the main power-ups: health, damage, fire rate and max health.'],
+ ['Замок: статуи рыцарей теперь поворачиваются и смотрят на игрока.','Castle: the knight statues now turn and look at the player.']]}];
+for(const [a,b] of[['LOG ОБНОВЛЕНИЙ','UPDATE LOG'],['ВЕРСИЯ ','VERSION ']])T2(a,b);
+for(const L of LOGS)for(const x of L.it)T2(x[0],x[1]);
+DICT.sort((a,b)=>b[0].length-a[0].length);
+const lgCss=document.createElement('style');lgCss.textContent="#lg{position:absolute;inset:0;background:repeating-conic-gradient(#1a1430 0 25%,#1f183a 0 50%) 0 0/40px 40px;display:none;flex-direction:column;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 16px) 12px 16px;z-index:8;overflow:auto;color:#fff;font-size:9px;line-height:1.6;text-align:center}#lg h2{margin:0;font-size:16px;font-weight:400;color:#f2c230;text-shadow:3px 3px 0 #000}#lg>*{flex-shrink:0}#lg button{width:220px;font-size:12px;padding:12px 8px;flex:none}#lgv{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px}.lgh{font-size:11px;color:#2fd4cf}.lgi{background:#1b1630;box-shadow:0 0 0 3px #000;padding:10px;font-size:8px;line-height:1.9;text-align:left}#logb{position:absolute!important;left:12px;top:calc(env(safe-area-inset-top,0px) + 76px);width:52px!important;height:52px!important;padding:0!important;font-size:9px!important;background:#1b1630!important;color:#2fd4cf!important;box-shadow:inset 0 0 0 3px #2fd4cf,0 0 0 3px #000}";document.head.appendChild(lgCss);
+document.body.insertAdjacentHTML('beforeend','<div id="lg"><h2>LOG ОБНОВЛЕНИЙ</h2><div id="lgv"></div><button id="lgx">В меню</button></div>');
+$('ov').insertAdjacentHTML('beforeend','<button id="logb">LOG</button>');
+$('logb').onclick=()=>{audioInit();$('lgv').innerHTML=LOGS.map(L=>'<div class="lgh">ВЕРСИЯ '+L.v+'</div>'+L.it.map(x=>'<div class="lgi">'+x[0]+'</div>').join('')).join('');$('lg').style.display='flex';$('lg').scrollTop=0};
+$('lgx').onclick=()=>{$('lg').style.display='none'};
+
 /* ===== ПРИНЦ КОРОЛЁК: призыв союзников ===== */
 function qDraw(){const x=p.x,y=p.y,gh=K('ghost',0),t=performance.now()/300;
  if(gh)X.globalAlpha=Math.min(X.globalAlpha,.75);
