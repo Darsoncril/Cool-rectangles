@@ -170,7 +170,7 @@ function musLB(){const bpm=152,sd=60/bpm/4,pr=[0,0,3,1],rf=[[0,0,2],[2,0,1],[3,1
   if(i%64==0)mnz(1,.07,t,'highpass',4500)}}
 function mus(){if(!AC||!MB||mute||!run||paused||AC.state!='running'){fmSet(null,!run);return}
  const fin=room%10==0&&!sec&&(bossK()==5||bossK()==6),lt=!fin&&stI()==6?(room%10==0&&!sec?'B':'L'):'',tr=fin?'f':lt||'n';if(tr!=mTr){mTr=tr;stp=0;nextT=0}
- const bsr=room%10==0&&!sec,S0=stI(),fk0=S0==5&&bsr?'4b':S0+(bsr?'b':'n'),fk=fmOk(fk0)?fk0:null;fmSet(fk,!fk);if(fk)return;
+ const bsr=room%10==0&&!sec,S0=stI(),fk0=S0==5&&bsr?'4b':S0+(bsr?'b':'n'),fk=fmOk(fk0)?fk0:null;if(fmWant(fk0)&&!fk){fmWarm(fk0);fmSet(null,false);return}fmSet(fk,!fk);if(fk)return;
  if(fin){musF();return}if(lt){lt=='B'?musLB():musL();return}
  const bs=room%10==0,bpm=bs?150+room/10*4:96+st*8,sd=60/bpm/2,sc=SC[bs?4:stI()],rt=RT[bs?4:stI()];
  DLY.delayTime.setTargetAtTime(sd*1.5,AC.currentTime,.1);
@@ -994,7 +994,7 @@ AIC.fir='<svg viewBox="0 0 24 24" shape-rendering="crispEdges"><rect width="24" 
 /* ===== LOG ОБНОВЛЕНИЙ ===== */
 const LOGS=[{v:'1.2.3',it:[
 ['ИСПРАВЛЕНИЕ: огромные мечи короля-призрака были невидимыми, хотя наносили урон. Теперь они отображаются.','FIX: the huge swords of the Ghost King were invisible although they dealt damage. They are now shown.'],
-['ИСПРАВЛЕНИЕ: музыка теперь начинает играть сразу, без задержки: следующие треки загружаются заранее.','FIX: the music now starts right away without a delay: the upcoming tracks are loaded in advance.']]},{v:'1.2.2',it:[
+['ИСПРАВЛЕНИЕ: музыка больше не обрывается через ~20 секунд и стартует без задержки: треки загружаются заранее целиком и играют из памяти.','FIX: the music no longer cuts out after ~20 seconds and starts without a delay: tracks are fully loaded in advance and played from memory.']]},{v:'1.2.2',it:[
 ['МУЗЫКА: у всех локаций появилась своя музыка: подземелье, болото, лавовая пещера, ледяная долина, пустота, замок и лаборатория. У боссов подземелья, болота, лавы, льда и последнего босса тоже своя музыка. У босса лаборатории та же музыка, что и у босса ледяной долины. Музыка лежит в папке music рядом с игрой.','MUSIC: every location now has its own music: the dungeon, swamp, lava cave, icy valley, void, castle and laboratory. The bosses of the dungeon, swamp, lava and ice, and the last boss, have their own tracks too. The laboratory boss shares the icy valley boss track. The music lives in the music folder next to the game.']]},{v:'1.2.1',it:[
 ['Профессор: теперь стреляет не только самонаводящимися колбами, но и обычными пулями (кольцо и прицельные выстрелы).','Professor: now fires regular bullets (a ring and aimed shots) as well as homing flasks.'],
 ['Все персонажи на последнем (4) уровне: урон немного снижен (на 10%).','All characters at the last (4th) level: damage slightly reduced (by 10%).'],
@@ -1024,17 +1024,23 @@ for(const L of LOGS)for(const x of L.it)T2(x[0],x[1]);
 /* ===== МУЗЫКА (файлы из папки music) ===== */
 const FMF={'0n':'music/Lvl1.mp3','0b':'music/Lvl1boss.mp3','1n':'music/lvl2.m4a','1b':'music/Lvl2boss.mp3','2n':'music/Lvl3.mp3','2b':'music/Lvl3boss.mp3','3n':'music/Lvl4.mp3','3b':'music/Lvl4boss.mp3','4n':'music/Lvl5.mp3','4b':'music/Lvl5boss.mp3','5n':'music/Lvl5castle.mp3','6n':'music/Lvl4lab.mp3','6b':'music/Lvl4boss.mp3'};
 const FMNEXT={0:[1],1:[2],2:[3,6],3:[4,5],6:[4,5],4:[0],5:[0]};
-const FMV=.7;let FA=null,fmCur=null,fmLast=null,fmBad={},fmBlob={},fmReq={};
-function fmLoad(k){if(!FMF[k]||fmReq[k])return;fmReq[k]=1;try{fetch(FMF[k]).then(r=>r.ok?r.blob():Promise.reject()).then(bl=>{fmBlob[k]=URL.createObjectURL(bl)}).catch(()=>{fmReq[k]=0})}catch(e){fmReq[k]=0}}
+const FMV=.7;let FA=null,fmCur=null,fmLast=null,fmBad={},fmBlob={},fmReq={},fmFail={},fmT={},fmEr={};
+/* трек целиком скачивается в память и играет оттуда: без обрывов потока и без задержки старта */
+function fmLoad(k){if(!FMF[k]||fmReq[k])return;fmReq[k]=1;fmT[k]=performance.now();try{fetch(FMF[k]).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(buf=>{fmBlob[k]=URL.createObjectURL(new Blob([buf],{type:/\.m4a$/.test(FMF[k])?'audio/mp4':'audio/mpeg'}))}).catch(()=>{fmFail[k]=1})}catch(e){fmFail[k]=1}}
+function fmReady(k){return !!(fmBlob[k]||fmFail[k]||(fmReq[k]&&performance.now()-fmT[k]>15000))}
 function fmWarm(k){const st=+k[0],keep={};keep[st+'n']=1;keep[st+'b']=1;if(st==5)keep['4b']=1;for(const n of FMNEXT[st]||[])keep[n+'n']=1;
- for(const x in fmBlob)if(!keep[x]){try{URL.revokeObjectURL(fmBlob[x])}catch(e){}delete fmBlob[x];fmReq[x]=0}
+ for(const x in fmBlob)if(!keep[x]&&(!FA||FA.src!==fmBlob[x])){try{URL.revokeObjectURL(fmBlob[x])}catch(e){}delete fmBlob[x];fmReq[x]=0}
  for(const x in keep)fmLoad(x)}
-function fmInit(){if(FA)return;try{FA=new Audio();FA.loop=true;FA.volume=FMV;FA.preload='auto';FA.addEventListener('error',()=>{if(fmLast){fmBad[fmLast]=1;fmLast=null}});FA.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';const pr=FA.play();if(pr&&pr.catch)pr.catch(()=>{})}catch(e){FA=null}}
-function fmOk(k){return !!(k&&FA&&FMF[k]&&!fmBad[k])}
+function fmInit(){if(FA)return;try{FA=new Audio();FA.loop=true;FA.volume=FMV;FA.preload='auto';
+ FA.addEventListener('error',()=>{const k=fmLast;if(!k)return;const c=FA.error?FA.error.code:0;fmEr[k]=(fmEr[k]||0)+1;fmLast=null;if(fmEr[k]>=2)fmBad[k]=1;else{if(fmBlob[k]){try{URL.revokeObjectURL(fmBlob[k])}catch(e){}delete fmBlob[k]}fmReq[k]=0;fmFail[k]=0}msg='МУЗЫКА: ОШИБКА '+c;msgT=2});
+ FA.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';const pr=FA.play();if(pr&&pr.catch)pr.catch(()=>{})}catch(e){FA=null}}
+function fmWant(k){return !!(k&&FA&&FMF[k]&&!fmBad[k])}
+function fmOk(k){return fmWant(k)&&fmReady(k)}
 function fmSet(k,rst){fmCur=k;if(!FA)return;if(!fmOk(k)){if(!FA.paused)FA.pause();if(rst)fmLast=null;return}
  if(k!==fmLast){fmLast=k;FA.src=fmBlob[k]||FMF[k];fmWarm(k)}
  if(FA.paused){const pr=FA.play();if(pr&&pr.catch)pr.catch(()=>{})}}
 try{fmLoad('0n');fmLoad('0b')}catch(e){}
+T2('МУЗЫКА: ОШИБКА ','MUSIC ERROR ');
 /* ===== ЗАПИСКИ ===== */
 const LOCN=[['ПОДЗЕМЕЛЬЕ','DUNGEON'],['БОЛОТО','SWAMP'],['ЛАВОВАЯ ПЕЩЕРА','LAVA CAVE'],['ЛЕДЯНАЯ ДОЛИНА','ICY VALLEY'],['ПУСТОТА','VOID'],['ЗАМОК','CASTLE'],['ЛАБОРАТОРИЯ','LABORATORY']];
 const NOTES=[
